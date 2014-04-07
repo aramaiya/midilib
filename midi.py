@@ -41,23 +41,48 @@ class Midi:
 
         #todo: can track chunk size = 0?
 
-        delta_time = 0
 
-        byteval = int.from_bytes(self.midifile.read(1), byteorder='big')
-
-        while (byteval & 128) != 0:
-            delta_time = (delta_time << 7) + (byteval - 128)
+        bytecount = 1
+        while bytecount <= track_chunksize:
+            delta_time = 0
             byteval = int.from_bytes(self.midifile.read(1), byteorder='big')
+            event_bytecount = 1
+            while (byteval & 128) != 0:
+                delta_time = (delta_time << 7) + (byteval - 128)
+                byteval = int.from_bytes(self.midifile.read(1), byteorder='big')
+                event_bytecount += 1
 
-        delta_time = (delta_time << 7) + byteval
+            delta_time = (delta_time << 7) + byteval
 
-        print("delta time: %s" % delta_time)
+            print("delta time: %d" % delta_time)
+
+            event_type = int.from_bytes(self.midifile.read(1), byteorder='big')
+            print("event type: %d" % event_type)
+
+            if event_type == 255:
+                meta_event_command = int.from_bytes(self.midifile.read(1), byteorder='big')
+                print("event command: %d" % meta_event_command)
+                meta_event_length = int.from_bytes(self.midifile.read(1), byteorder='big')
+                event_params = self.midifile.read(meta_event_length)
+                print("event params: %s" % str(list(event_params)))
+            bytecount += 1
+
+
+
+
+
+class Event:
+
+    def __init__(self):
+        self.deltatime = 0
 
 
 class Track:
 
     def __init__(self):
-        self.deltatime = 0
+        pass
+
+
 
 
 
